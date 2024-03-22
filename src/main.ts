@@ -7,6 +7,7 @@ import {
     Plugin,
     PluginSettingTab,
     Setting,
+    WorkspaceLeaf,
 } from "obsidian";
 import { renderErrorPre } from "ui/render";
 import { FullIndex } from "data-index/index";
@@ -122,6 +123,21 @@ export default class DataviewPlugin extends Plugin {
             },
         });
 
+        interface WorkspaceLeafRebuild extends WorkspaceLeaf {
+            rebuildView(): void;
+        }
+
+        this.addCommand({
+            id: "dataview-rebuild-current-view",
+            name: "Rebuild current view",
+            callback: () => {
+                const activeView: MarkdownView | null = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (activeView) {
+                    (activeView.leaf as WorkspaceLeafRebuild).rebuildView();
+                }
+            },
+        });
+
         // Run index initialization, which actually traverses the vault to index files.
         if (!this.app.workspace.layoutReady) {
             this.app.workspace.onLayoutReady(async () => this.index.initialize());
@@ -202,6 +218,7 @@ export default class DataviewPlugin extends Plugin {
         component: Component | MarkdownPostProcessorContext,
         sourcePath: string
     ) {
+        el.style.overflowX = "auto";
         this.api.execute(source, el, component, sourcePath);
     }
 
@@ -212,6 +229,7 @@ export default class DataviewPlugin extends Plugin {
         component: Component | MarkdownPostProcessorContext,
         sourcePath: string
     ) {
+        el.style.overflowX = "auto";
         this.api.executeJs(source, el, component, sourcePath);
     }
 
