@@ -88,6 +88,20 @@ export class DataviewApi {
     /** Re-exporting of luxon for people who can't easily require it. Sorry! */
     public luxon = Luxon;
 
+    /** Utilities to check the current Dataview version and compare it to SemVer version ranges. */
+    public version;
+    
+    private setVersion = (vNum: string) => {
+        const version = vNum;
+        return {
+            get current() {
+                return version;
+            },
+            compare: (op: CompareOperator, ver: string) => compare(version, ver, op),
+            satisfies: (range: string) => satisfies(version, range),
+        };
+    };
+
     public constructor(
         public app: App,
         public index: FullIndex,
@@ -97,23 +111,8 @@ export class DataviewApi {
         this.evaluationContext = new Context(defaultLinkHandler(index, ""), settings);
         this.func = Functions.bindAll(DEFAULT_FUNCTIONS, this.evaluationContext);
         this.io = new DataviewIOApi(this);
+        this.version = this.setVersion(this.verNum);
     }
-
-    /** Utilities to check the current Dataview version and comapre it to SemVer version ranges. */
-    public version: {
-        current: string;
-        compare: (op: CompareOperator, ver: string) => boolean;
-        satisfies: (range: string) => boolean;
-    } = (() => {
-        const { verNum: version } = this;
-        return {
-            get current() {
-                return version;
-            },
-            compare: (op: CompareOperator, ver: string) => compare(version, ver, op),
-            satisfies: (range: string) => satisfies(version, range),
-        };
-    })();
 
     /////////////////////////////
     // Index + Data Collection //
